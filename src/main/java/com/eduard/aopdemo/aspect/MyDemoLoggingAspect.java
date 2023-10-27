@@ -2,6 +2,7 @@ package com.eduard.aopdemo.aspect;
 
 import com.eduard.aopdemo.Account;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.SortedMap;
 
 @Aspect
 @Component
@@ -94,9 +96,43 @@ public class MyDemoLoggingAspect {
         //print out which method we are advising on
         String method = joinPoint.getSignature().toLongString();
         System.out.println("\n============> Executing @AfterFinally on method " + method);
+    }
 
 
+    @Around("execution(* com.eduard.aopdemo.service.*.getFortune(..))")
+    public Object aroundGetFortune(
+            ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
+        // print out method we are advising on
+        String method = proceedingJoinPoint.getSignature().toString();
+        System.out.println("\n===========> Executing @Around on method: " + method);
+
+        // get begin timestamp
+        long begin = System.currentTimeMillis();
+
+        // execute the method
+        Object result = null;
+        try{
+            result = proceedingJoinPoint.proceed();
+        } catch (Exception e) {
+            //log the exception
+            System.out.println(e.getMessage());
+
+            //give user a custom message
+            //result = "Major accident! Helicopter on the way";
+
+            //rethrow exception
+            throw e;
+        }
+
+        // get end timestamp
+        long end = System.currentTimeMillis();
+
+        // compute and display duration
+        long duration = end - begin;
+        System.out.println("\n========> Duration: " + duration/1000 + " seconds");
+
+        return result;
     }
 
 
